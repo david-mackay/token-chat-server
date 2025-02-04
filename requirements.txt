@@ -1,0 +1,6 @@
+flask
+flask-socketio
+aiohttp
+psycopg2-binary
+python-dotenv
+eventlet
