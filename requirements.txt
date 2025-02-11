@@ -1,6 +1,11 @@
-flask
-flask-socketio
-aiohttp
-psycopg2-binary
-python-dotenv
+boto3
+botocore
 eventlet
+Flask
+Flask-CORS
+Flask-Limiter
+Flask-SocketIO
+python-dotenv
+PyJWT
+requests
+solders
