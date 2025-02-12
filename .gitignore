@@ -1,0 +1,20 @@
+# Environment files
+.env
+
+# Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# IDE settings (optional but recommended)
+.vscode/
+.idea/
+
+# Virtual environment (optional but recommended)
+venv/
+env/

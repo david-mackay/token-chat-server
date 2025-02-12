@@ -157,7 +157,7 @@ class PriceTracker:
         self.token_subscriptions = {}
         self.API_KEY = os.getenv('BIRDEYE_API_KEY', '')
         self.API_URL = 'https://public-api.birdeye.so/defi'
-        self.price_interval = 120
+        self.price_interval = 600
 
     def start_tracking(self, token_address: str, sid: str) -> None:
         if token_address in self.token_subscriptions:
@@ -335,12 +335,6 @@ def handle_connect():
         signature = request.args.get('signature')
         wallet_address = request.args.get('wallet_address')
         
-        print(f"Connection attempt with:")
-        print(f"token_address: {token_address}")
-        print(f"wallet_address: {wallet_address}")
-        print(f"auth_message: {auth_message}")
-        print(f"signature: {signature}")
-        
         if not all([token_address, auth_message, signature, wallet_address]):
             missing = [k for k, v in {
                 'token_address': token_address,
@@ -351,9 +345,8 @@ def handle_connect():
             print(f"Missing authentication parameters: {missing}")
             return False
             
-        if token_address not in open_chats:
-            print(f"Invalid token address: {token_address}")
-            return False
+        # if token_address not in open_chats:
+        #     return False
             
         # Verify signature
         if not auth_manager.verify_signature(auth_message, signature, wallet_address):
