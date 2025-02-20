@@ -1,9 +1,14 @@
+<<<<<<< HEAD
 # Environment files
+=======
+# Environment variables
+>>>>>>> 5a9692a (added .gitignore)
 .env
 
 # Python cache files
 __pycache__/
 *.py[cod]
+<<<<<<< HEAD
 *$py.class
 
 # Distribution / packaging
@@ -18,3 +23,6 @@ build/
 # Virtual environment (optional but recommended)
 venv/
 env/
+=======
+*$py.class
+>>>>>>> 5a9692a (added .gitignore)
