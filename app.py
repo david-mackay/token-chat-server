@@ -11,6 +11,7 @@ from datetime import datetime, timezone
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 import functools
+from maintenance.cache_maintenance import setup_cache_maintenance
 
 from auth import AuthManager
 from chat import ChatManager
@@ -20,6 +21,8 @@ load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
+
+
 socketio = SocketIO(
     app,
     cors_allowed_origins="*",
@@ -49,6 +52,7 @@ chat_manager = ChatManager(dynamodb_resource, socketio)
 price_tracker = PriceTracker(socketio)
 auth_manager = AuthManager()
 
+setup_cache_maintenance(chat_manager, interval_minutes=30)
 # Define supported tokens
 open_chats = {
     "So11111111111111111111111111111111111111112",
@@ -208,6 +212,7 @@ def get_active_rooms():
     except Exception as e:
         print(f"Error getting active rooms: {e}")
         return jsonify({'error': 'Failed to fetch room data'}), 500
+
 
 if __name__ == '__main__':
     port = int(os.getenv('PORT', 3001))
