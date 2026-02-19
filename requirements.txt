@@ -1,11 +1,7 @@
-boto3
-botocore
-eventlet
-Flask
-Flask-CORS
-Flask-Limiter
-Flask-SocketIO
+python-socketio
+starlette
+uvicorn[standard]
 python-dotenv
 PyJWT
-requests
 solders
+supabase

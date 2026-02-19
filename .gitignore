@@ -1,5 +1,6 @@
 # Environment files
 .env
+.env.local
 
 # Python cache files
 __pycache__/
