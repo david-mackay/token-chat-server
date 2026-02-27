@@ -1,8 +1,8 @@
 from typing import Optional
 
 
-VALID_MESSAGE_TYPES = {"text", "gift_token", "gift_nft"}
-GIFT_TYPES = {"gift_token", "gift_nft"}
+VALID_MESSAGE_TYPES = {"text", "gift_token", "gift_nft", "favour_share", "gift_envelope", "gift_gacha"}
+GIFT_TYPES = {"gift_token", "gift_nft", "gift_envelope", "gift_gacha"}
 
 GIFT_FIELD_MAP = {
     'imageUrl': 'media_url',
@@ -14,13 +14,10 @@ GIFT_FIELD_MAP = {
     'nftName': 'nft_name',
 }
 
-# Messages are stored with sender_wallet / receiver_wallet directly.
-# Profile enrichment (display name, avatar) is Tapestry's job — done at the
-# frontend layer.  The server only stores and queries raw message rows.
 MESSAGE_COLUMNS = (
     'id, sender_wallet, receiver_wallet, content, type, media_url, amount, '
     'transaction_hash, mint_address, token_symbol, token_name, nft_name, '
-    'created_at, is_read'
+    'favour_id, is_opened, created_at, is_read'
 )
 
 
@@ -57,6 +54,7 @@ class ChatManager:
         content: Optional[str] = None,
         msg_type: str = "text",
         gift_data: Optional[dict] = None,
+        favour_id: Optional[str] = None,
     ) -> dict:
         if msg_type not in VALID_MESSAGE_TYPES:
             raise ValueError(f"Invalid message type: {msg_type}")
@@ -64,13 +62,17 @@ class ChatManager:
         if msg_type in GIFT_TYPES:
             if not gift_data:
                 raise ValueError("Gift messages require giftData")
-            if not gift_data.get("transactionHash"):
-                raise ValueError("Gift messages require a transactionHash")
-            if not gift_data.get("mintAddress"):
-                raise ValueError("Gift messages require a mintAddress")
+            if msg_type in ("gift_token", "gift_nft"):
+                if not gift_data.get("transactionHash"):
+                    raise ValueError("Gift messages require a transactionHash")
+                if not gift_data.get("mintAddress"):
+                    raise ValueError("Gift messages require a mintAddress")
 
         if msg_type == "text" and not content:
             raise ValueError("Text messages require content")
+
+        if msg_type == "favour_share" and not favour_id:
+            raise ValueError("Favour share messages require a favour_id")
 
         row: dict = {
             'sender_wallet': sender_wallet,
@@ -79,6 +81,12 @@ class ChatManager:
             'type': msg_type,
             'is_read': False,
         }
+
+        if favour_id:
+            row['favour_id'] = favour_id
+
+        if msg_type in ("gift_envelope", "gift_gacha"):
+            row['is_opened'] = False
 
         if gift_data:
             for client_key, db_col in GIFT_FIELD_MAP.items():

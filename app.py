@@ -246,6 +246,96 @@ async def handle_send_gift(sid, data, auth_payload):
         await sio.emit('error', {'message': 'Failed to send gift'}, to=sid)
 
 
+@sio.on('send_favour_share')
+@require_auth
+async def handle_send_favour_share(sid, data, auth_payload):
+    try:
+        sender = auth_payload['wallet_address']
+
+        if not rate_limit_messages(sender):
+            await sio.emit('error', {'message': 'Rate limit exceeded. Please wait.'}, to=sid)
+            return
+
+        recipient = data.get('recipientWallet')
+        favour_id = data.get('favourId')
+
+        if not recipient:
+            await sio.emit('error', {'message': 'recipientWallet is required'}, to=sid)
+            return
+        if not favour_id:
+            await sio.emit('error', {'message': 'favourId is required'}, to=sid)
+            return
+
+        conversation_id = ChatManager.make_conversation_id(sender, recipient)
+        message = await chat_manager.save_message(
+            sender_wallet=sender,
+            recipient_wallet=recipient,
+            content=data.get('content'),
+            msg_type='favour_share',
+            favour_id=favour_id,
+        )
+
+        await sio.emit('new_message', {
+            'conversationId': conversation_id,
+            'message': message,
+        }, room=conversation_id)
+
+    except ValueError as e:
+        await sio.emit('error', {'message': str(e)}, to=sid)
+    except Exception as e:
+        print(f"Error sending favour share: {e}")
+        await sio.emit('error', {'message': 'Failed to send favour share'}, to=sid)
+
+
+@sio.on('send_envelope')
+@require_auth
+async def handle_send_envelope(sid, data, auth_payload):
+    try:
+        sender = auth_payload['wallet_address']
+
+        if not rate_limit_messages(sender):
+            await sio.emit('error', {'message': 'Rate limit exceeded. Please wait.'}, to=sid)
+            return
+
+        recipient = data.get('recipientWallet')
+        if not recipient:
+            await sio.emit('error', {'message': 'recipientWallet is required'}, to=sid)
+            return
+
+        msg_type = data.get('type', 'gift_envelope')
+        if msg_type not in ('gift_envelope', 'gift_gacha'):
+            await sio.emit('error', {'message': 'type must be gift_envelope or gift_gacha'}, to=sid)
+            return
+
+        gift_data = {
+            'transactionHash': data.get('transactionHash'),
+            'amount': data.get('amount'),
+            'tokenSymbol': data.get('tokenSymbol', 'USDC'),
+            'tokenName': data.get('tokenName', 'USD Coin'),
+            'mintAddress': data.get('mintAddress', 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'),
+        }
+
+        conversation_id = ChatManager.make_conversation_id(sender, recipient)
+        message = await chat_manager.save_message(
+            sender_wallet=sender,
+            recipient_wallet=recipient,
+            content=data.get('content'),
+            msg_type=msg_type,
+            gift_data=gift_data,
+        )
+
+        await sio.emit('new_message', {
+            'conversationId': conversation_id,
+            'message': message,
+        }, room=conversation_id)
+
+    except ValueError as e:
+        await sio.emit('error', {'message': str(e)}, to=sid)
+    except Exception as e:
+        print(f"Error sending envelope: {e}")
+        await sio.emit('error', {'message': 'Failed to send envelope'}, to=sid)
+
+
 @sio.on('mark_read')
 @require_auth
 async def handle_mark_read(sid, data, auth_payload):
